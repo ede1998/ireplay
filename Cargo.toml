@@ -54,6 +54,10 @@ critical-section = "1.2.0"
 # For debug builds always builds with some optimization
 opt-level = "s"
 
+[profile.dev.package.esp-hal]
+# suppress "debug build" warning because we already always build with optimization
+debug-assertions = false
+
 [profile.release]
 codegen-units = 1        # LLVM can perform better optimizations using a single thread
 debug = 2
