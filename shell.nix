@@ -47,4 +47,11 @@ let
 in
 (pkgs.mkShell {
   packages = [ pkgs.espflash toolchain-pkg ];
+  shellHook = ''
+    if [ -f wifi.env ]; then
+      source wifi.env
+    else
+      echo "Please provide SSID and PASSWORD env var, e.g. via wifi.env file.";
+    fi
+  '';
 })
