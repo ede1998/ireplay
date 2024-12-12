@@ -1,21 +1,9 @@
-//! Embassy DHCP Example
-//!
-//!
-//! Set SSID and PASSWORD env variable before running this example.
-//!
-//! This gets an ip address via DHCP then performs an HTTP get request to some "random" server
-//!
-//! Because of the huge task-arena size configured this won't work on ESP32-S2
-
-//% FEATURES: embassy embassy-generic-timers esp-wifi esp-wifi/wifi esp-wifi/utils esp-hal/unstable
-//% CHIPS: esp32 esp32s2 esp32s3 esp32c2 esp32c3 esp32c6
-
 #![no_std]
 #![no_main]
 #![feature(impl_trait_in_assoc_type)]
 
 use embassy_executor::Spawner;
-use embassy_net::{tcp::TcpSocket, Ipv4Address, StackResources};
+use embassy_net::StackResources;
 use embassy_time::{Duration, Timer};
 use esp_alloc as _;
 use esp_backtrace as _;
@@ -29,22 +17,50 @@ use esp_wifi::{
     },
     EspWifiController,
 };
-
-// When you are okay with using a nightly compiler it's better to use https://docs.rs/static_cell/2.1.0/static_cell/macro.make_static.html
-macro_rules! mk_static {
-    ($t:ty,$val:expr) => {{
-        static STATIC_CELL: static_cell::StaticCell<$t> = static_cell::StaticCell::new();
-        #[deny(unused_attributes)]
-        let x = STATIC_CELL.uninit().write(($val));
-        x
-    }};
-}
+use picoserve::{make_static, routing::get, AppBuilder, AppRouter};
 
 const SSID: &str = env!("SSID");
 const PASSWORD: &str = env!("PASSWORD");
 
+struct AppProps;
+
+impl AppBuilder for AppProps {
+    type PathRouter = impl picoserve::routing::PathRouter;
+
+    fn build_app(self) -> picoserve::Router<Self::PathRouter> {
+        picoserve::Router::new().route("/", get(|| async move { "Hello World" }))
+    }
+}
+
+const WEB_TASK_POOL_SIZE: usize = 8;
+
+#[embassy_executor::task(pool_size = WEB_TASK_POOL_SIZE)]
+async fn web_task(
+    id: usize,
+    stack: embassy_net::Stack<'static>,
+    app: &'static AppRouter<AppProps>,
+    config: &'static picoserve::Config<Duration>,
+) -> ! {
+    let port = 80;
+    let mut tcp_rx_buffer = [0; 1024];
+    let mut tcp_tx_buffer = [0; 1024];
+    let mut http_buffer = [0; 2048];
+
+    picoserve::listen_and_serve(
+        id,
+        app,
+        config,
+        stack,
+        port,
+        &mut tcp_rx_buffer,
+        &mut tcp_tx_buffer,
+        &mut http_buffer,
+    )
+    .await
+}
+
 #[esp_hal_embassy::main]
-async fn main(spawner: Spawner) -> ! {
+async fn main(spawner: Spawner) {
     esp_println::logger::init_logger_from_env();
     let mut config = esp_hal::Config::default();
     config.cpu_clock = CpuClock::max();
@@ -56,7 +72,7 @@ async fn main(spawner: Spawner) -> ! {
     let timg0 = TimerGroup::new(peripherals.TIMG0);
     let mut rng = Rng::new(peripherals.RNG);
 
-    let init = &*mk_static!(
+    let init = &*make_static!(
         EspWifiController<'static>,
         init(timg0.timer0, rng, peripherals.RADIO_CLK).unwrap()
     );
@@ -74,15 +90,15 @@ async fn main(spawner: Spawner) -> ! {
     let (stack, runner) = embassy_net::new(
         wifi_interface,
         embassy_net::Config::dhcpv4(Default::default()),
-        mk_static!(StackResources<3>, StackResources::<3>::new()),
+        make_static!(
+            StackResources<{ WEB_TASK_POOL_SIZE + 1 }>,
+            StackResources::new()
+        ),
         seed,
     );
 
     spawner.must_spawn(connection(controller));
     spawner.must_spawn(net_task(runner));
-
-    let mut rx_buffer = [0; 4096];
-    let mut tx_buffer = [0; 4096];
 
     loop {
         if stack.is_link_up() {
@@ -100,45 +116,20 @@ async fn main(spawner: Spawner) -> ! {
         Timer::after(Duration::from_millis(500)).await;
     }
 
-    loop {
-        Timer::after(Duration::from_millis(1_000)).await;
+    let app = make_static!(AppRouter<AppProps>, AppProps.build_app());
 
-        let mut socket = TcpSocket::new(stack, &mut rx_buffer, &mut tx_buffer);
+    let config = make_static!(
+        picoserve::Config<Duration>,
+        picoserve::Config::new(picoserve::Timeouts {
+            start_read_request: Some(Duration::from_secs(5)),
+            read_request: Some(Duration::from_secs(1)),
+            write: Some(Duration::from_secs(1)),
+        })
+        .keep_connection_alive()
+    );
 
-        socket.set_timeout(Some(embassy_time::Duration::from_secs(10)));
-
-        let remote_endpoint = (Ipv4Address::new(142, 250, 185, 115), 80);
-        println!("connecting...");
-        let r = socket.connect(remote_endpoint).await;
-        if let Err(e) = r {
-            println!("connect error: {:?}", e);
-            continue;
-        }
-        println!("connected!");
-        let mut buf = [0; 1024];
-        loop {
-            use embedded_io_async::Write;
-            let r = socket
-                .write_all(b"GET / HTTP/1.0\r\nHost: www.mobile-j.de\r\n\r\n")
-                .await;
-            if let Err(e) = r {
-                println!("write error: {:?}", e);
-                break;
-            }
-            let n = match socket.read(&mut buf).await {
-                Ok(0) => {
-                    println!("read EOF");
-                    break;
-                }
-                Ok(n) => n,
-                Err(e) => {
-                    println!("read error: {:?}", e);
-                    break;
-                }
-            };
-            println!("{}", core::str::from_utf8(&buf[..n]).unwrap());
-        }
-        Timer::after(Duration::from_millis(3000)).await;
+    for id in 0..WEB_TASK_POOL_SIZE {
+        spawner.must_spawn(web_task(id, stack, app, config));
     }
 }
 
@@ -152,7 +143,6 @@ async fn connection(mut controller: WifiController<'static>) {
             controller.wait_for_event(WifiEvent::StaDisconnected).await;
             Timer::after(Duration::from_millis(5000)).await
         }
-
         if !matches!(controller.is_started(), Ok(true)) {
             let client_config = Configuration::Client(ClientConfiguration {
                 ssid: SSID.try_into().unwrap(),

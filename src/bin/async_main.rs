@@ -1,5 +1,6 @@
 #![no_std]
 #![no_main]
+#![feature(impl_trait_in_assoc_type)]
 
 use esp_backtrace as _;
 use esp_hal::prelude::*;
@@ -44,5 +45,4 @@ async fn main(spawner: Spawner) {
     }
 
     // for inspiration have a look at the examples at https://github.com/esp-rs/esp-hal/tree/v0.22.0/examples/src/bin
-
 }
