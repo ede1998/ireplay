@@ -50,6 +50,7 @@ esp-hal-embassy = { version = "0.5.0", features = ["esp32"] }
 static_cell = { version = "2.1.0", features = ["nightly"] }
 critical-section = "1.2.0"
 picoserve = { version = "0.13.2", features = ["alloc", "embassy"] }
+rand = { version = "*", default-features = false }
 
 [profile.dev]
 # Rust debug is too slow.
