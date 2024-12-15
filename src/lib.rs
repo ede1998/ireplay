@@ -3,5 +3,5 @@
 
 pub const WEB_TASK_POOL_SIZE: usize = 8;
 
-pub mod wifi;
 pub mod server;
+pub mod wifi;
