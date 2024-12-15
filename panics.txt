@@ -1,0 +1,176 @@
+====================== PANIC ======================
+panicked at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/linked_list_allocator-0.10.5/src/hole.rs:617:21:
+attempt to add with overflow
+
+Backtrace:
+
+0x400d21d5
+0x400d21d5 - linked_list_allocator::hole::Cursor::try_merge_next_n
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/linked_list_allocator-0.10.5/src/hole.rs:617
+0x400d2316
+0x400d2316 - linked_list_allocator::Heap::deallocate
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/linked_list_allocator-0.10.5/src/lib.rs:207
+0x400d1d14
+0x400d1d14 - <esp_alloc::EspHeap as core::alloc::global::GlobalAlloc>::dealloc::{{closure}}
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/esp-alloc-0.5.0/src/lib.rs:280
+0x400d1d94
+0x400d1d94 - __rust_dealloc
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/esp-alloc-0.5.0/src/lib.rs:75
+0x400d5d42
+0x400d5d42 - alloc::alloc::dealloc
+    at /nix/store/c8ahcdww0kgfs8yqf8xil23x2f80lfm6-esp32-xtensa-rust-toolchain-1.82.0.3/lib/rustlib/src/rust/library/alloc/src/alloc.rs:117
+0x400d10c3
+0x400d10c3 - psram::allocate
+    at ??:??
+0x400d0ebf
+0x400d0ebf - psram::____embassy_main_task::{{closure}}
+    at /home/erik/dev/rust/esp32/ireplay/src/bin/psram.rs:45
+0x400d24ad
+0x400d24ad - embassy_executor::raw::SyncExecutor::poll::{{closure}}
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/embassy-executor-0.6.3/src/raw/mod.rs:405
+0x400d11f0
+0x400d11f0 - esp_hal_embassy::executor::thread::Executor::run
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/esp-hal-embassy-0.5.0/src/executor/thread.rs:109
+0x400d10f7
+0x400d10f7 - psram::__xtensa_lx_rt_main
+    at /home/erik/dev/rust/esp32/ireplay/src/bin/psram.rs:18
+
+
+
+====================== PANIC ======================
+panicked at /home/erik/dev/rust/linked-list-allocator/src/hole.rs:618:25:
+called with 1 and tried to 1048572 += 4294967295
+
+Backtrace:
+
+0x400d2cfe
+0x400d2cfe - linked_list_allocator::Heap::deallocate
+    at /home/erik/dev/rust/linked-list-allocator/src/lib.rs:209
+0x400d2b6e
+0x400d2b6e - <esp_alloc::EspHeap as core::alloc::global::GlobalAlloc>::dealloc::{{closure}}
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/esp-alloc-0.5.0/src/lib.rs:280
+0x400d2bf0
+0x400d2bf0 - __rust_dealloc
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/esp-alloc-0.5.0/src/lib.rs:75
+0x400d6bd6
+0x400d6bd6 - alloc::alloc::dealloc
+    at /nix/store/c8ahcdww0kgfs8yqf8xil23x2f80lfm6-esp32-xtensa-rust-toolchain-1.82.0.3/lib/rustlib/src/rust/library/alloc/src/alloc.rs:117
+0x400d1272
+0x400d1272 - <alloc::raw_vec::RawVec<T,A> as core::ops::drop::Drop>::drop
+    at /nix/store/c8ahcdww0kgfs8yqf8xil23x2f80lfm6-esp32-xtensa-rust-toolchain-1.82.0.3/lib/rustlib/src/rust/library/alloc/src/raw_vec.rs:409
+0x400d2001
+0x400d2001 - psram::allocate_vec
+    at ??:??
+0x400d1e8d
+0x400d1e8d - psram::____embassy_main_task::{{closure}}
+    at /home/erik/dev/rust/esp32/ireplay/src/bin/psram.rs:37
+0x400d332d
+0x400d332d - embassy_executor::raw::SyncExecutor::poll::{{closure}}
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/embassy-executor-0.6.3/src/raw/mod.rs:405
+0x400d1db4
+0x400d1db4 - esp_hal_embassy::executor::thread::Executor::run
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/esp-hal-embassy-0.5.0/src/executor/thread.rs:109
+0x400d2047
+0x400d2047 - psram::__xtensa_lx_rt_main
+    at /home/erik/dev/rust/esp32/ireplay/src/bin/psram.rs:20
+
+
+====================== PANIC ======================
+panicked at /home/erik/dev/rust/linked-list-allocator/src/lib.rs:208:9:
+dealloc of 0x3f800000 with Layout { size: 1048572, align: 4 (1 << 2) }
+
+Backtrace:
+
+0x400d2b4a
+0x400d2b4a - <esp_alloc::EspHeap as core::alloc::global::GlobalAlloc>::dealloc::{{closure}}
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/esp-alloc-0.5.0/src/lib.rs:280
+0x400d2bcc
+0x400d2bcc - __rust_dealloc
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/esp-alloc-0.5.0/src/lib.rs:75
+0x400d69ae
+0x400d69ae - alloc::alloc::dealloc
+    at /nix/store/c8ahcdww0kgfs8yqf8xil23x2f80lfm6-esp32-xtensa-rust-toolchain-1.82.0.3/lib/rustlib/src/rust/library/alloc/src/alloc.rs:117
+0x400d124e
+0x400d124e - <alloc::raw_vec::RawVec<T,A> as core::ops::drop::Drop>::drop
+    at /nix/store/c8ahcdww0kgfs8yqf8xil23x2f80lfm6-esp32-xtensa-rust-toolchain-1.82.0.3/lib/rustlib/src/rust/library/alloc/src/raw_vec.rs:409
+0x400d1fdd
+0x400d1fdd - psram::allocate_vec
+    at ??:??
+0x400d1e69
+0x400d1e69 - psram::____embassy_main_task::{{closure}}
+    at /home/erik/dev/rust/esp32/ireplay/src/bin/psram.rs:37
+0x400d3105
+0x400d3105 - embassy_executor::raw::SyncExecutor::poll::{{closure}}
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/embassy-executor-0.6.3/src/raw/mod.rs:405
+0x400d1d90
+0x400d1d90 - esp_hal_embassy::executor::thread::Executor::run
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/esp-hal-embassy-0.5.0/src/executor/thread.rs:109
+0x400d2023
+0x400d2023 - psram::__xtensa_lx_rt_main
+    at /home/erik/dev/rust/esp32/ireplay/src/bin/psram.rs:20
+0x400d4f3e
+0x400d4f3e - Reset
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/xtensa-lx-rt-0.17.2/src/lib.rs:82
+
+====================== PANIC ======================
+panicked at /home/erik/dev/rust/linked-list-allocator/src/hole.rs:423:9:
+Aligned layout: Layout { size: 1048572, align: 4 (1 << 2) }
+
+Backtrace:
+
+0x400d1ba6
+0x400d1ba6 - linked_list_allocator::Heap::deallocate
+    at /home/erik/dev/rust/linked-list-allocator/src/lib.rs:209
+0x400d1aea
+0x400d1aea - <esp_alloc::EspHeap as core::alloc::global::GlobalAlloc>::dealloc::{{closure}}
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/esp-alloc-0.5.0/src/lib.rs:280
+0x400d0f81
+0x400d0f81 - psram::allocate
+    at /home/erik/dev/rust/esp32/ireplay/src/bin/psram.rs:100
+0x400d0e1d
+0x400d0e1d - psram::____embassy_main_task::{{closure}}
+    at /home/erik/dev/rust/esp32/ireplay/src/bin/psram.rs:37
+0x400d1fcd
+0x400d1fcd - embassy_executor::raw::SyncExecutor::poll::{{closure}}
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/embassy-executor-0.6.3/src/raw/mod.rs:405
+0x400d0d44
+0x400d0d44 - esp_hal_embassy::executor::thread::Executor::run
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/esp-hal-embassy-0.5.0/src/executor/thread.rs:109
+0x400d1027
+0x400d1027 - psram::__xtensa_lx_rt_main
+    at /home/erik/dev/rust/esp32/ireplay/src/bin/psram.rs:20
+0x400d3e06
+0x400d3e06 - Reset
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/xtensa-lx-rt-0.17.2/src/lib.rs:82
+0x400d2119
+0x400d2119 - ESP32Reset
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/esp-hal-0.22.0/src/soc/esp32/mod.rs:120
+
+====================== PANIC ======================
+panicked at /home/erik/dev/rust/linked-list-allocator/src/lib.rs:89:9:
+init of heap bottom 0x3f800000 of size 2097152
+
+Backtrace:
+
+0x400d1953
+0x400d1953 - esp_alloc::HeapRegion::new
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/esp-alloc-0.5.0/src/lib.rs:111
+0x400d0dbe
+0x400d0dbe - psram::____embassy_main_task::{{closure}}
+    at /home/erik/dev/rust/esp32/ireplay/src/bin/psram.rs:28
+0x400d21a1
+0x400d21a1 - embassy_executor::raw::SyncExecutor::poll::{{closure}}
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/embassy-executor-0.6.3/src/raw/mod.rs:405
+0x400d0d58
+0x400d0d58 - esp_hal_embassy::executor::thread::Executor::run
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/esp-hal-embassy-0.5.0/src/executor/thread.rs:109
+0x400d103b
+0x400d103b - psram::__xtensa_lx_rt_main
+    at /home/erik/dev/rust/esp32/ireplay/src/bin/psram.rs:20
+0x400d3fda
+0x400d3fda - Reset
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/xtensa-lx-rt-0.17.2/src/lib.rs:82
+0x400d22ed
+0x400d22ed - ESP32Reset
+    at /home/erik/.cargo/registry/src/index.crates.io-6f17d22bba15001f/esp-hal-0.22.0/src/soc/esp32/mod.rs:120
+
