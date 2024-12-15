@@ -72,6 +72,7 @@ fn binary_search<F: Fn(usize) -> bool>(check: F) -> usize {
     }
 }
 
+#[allow(dead_code)]
 fn allocate(capacity: usize, align: usize) -> bool {
     let Ok(layout) = Layout::from_size_align(capacity, align) else {
         info!("FAILED at {capacity} bytes");
@@ -109,6 +110,7 @@ fn check_linked_list_panic(layout: Layout) -> bool {
     Layout::from_size_align(size, layout.align()).is_err()
 }
 
+#[allow(dead_code)]
 fn allocate_vec(capacity: usize, align: usize) -> bool {
     info!("Called with {capacity} and {align}");
     fn inner<T: Default>(capacity: usize) -> bool {
