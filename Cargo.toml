@@ -15,45 +15,6 @@ esp-hal = { version = "0.22.0", features = ["esp32", "quad-psram"] }
 esp-println = { version = "0.12.0", features = ["esp32", "log"] }
 log = { version = "0.4.21" }
 esp-alloc = { version = "0.5.0" }
-embedded-io = "0.6.1"
-
-embedded-io-async = "0.6.1"
-embassy-net = { version = "0.5.0", features = [
-    "tcp",
-    "udp",
-    "dhcpv4",
-    "medium-ethernet",
-] }
-
-esp-wifi = { version = "0.11.0", default-features = false, features = [
-    "esp32",
-    "utils",
-    "wifi",
-    "esp-alloc",
-    "log",
-] }
-heapless = { version = "0.8.0", default-features = false }
-smoltcp = { version = "0.11.0", default-features = false, features = [
-    "medium-ethernet",
-    "proto-dhcpv4",
-    "proto-igmp",
-    "proto-ipv4",
-    "socket-dhcpv4",
-    "socket-icmp",
-    "socket-raw",
-    "socket-tcp",
-    "socket-udp",
-] }
-embassy-executor = { version = "0.6.0", features = ["nightly"] }
-embassy-time = { version = "0.3.1", features = ["generic-queue-8"] }
-esp-hal-embassy = { version = "0.5.0", features = ["esp32"] }
-static_cell = { version = "2.1.0", features = ["nightly"] }
-critical-section = "1.2.0"
-picoserve = { version = "0.13.2", features = ["alloc", "embassy"] }
-rand = { version = "*", default-features = false }
-
-[patch.crates-io]
-linked_list_allocator = { path = "/home/erik/dev/rust/linked-list-allocator" }
 
 [profile.dev]
 # Rust debug is too slow.
