@@ -19,7 +19,10 @@ async fn main(spawner: Spawner) {
     let timg0 = TimerGroup::new(peripherals.TIMG0);
     let rng = Rng::new(peripherals.RNG);
 
+    // need SRAM for WIFI but can also use PSRAM for other stuff
+    // SRAM must be first to prevent WIFI from choosing PSRAM
     esp_alloc::heap_allocator!(72 * 1024);
+    esp_alloc::psram_allocator!(peripherals.PSRAM, esp_hal::psram);
 
     esp_hal_embassy::init(timg1.timer0);
 
