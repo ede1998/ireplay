@@ -7,59 +7,10 @@
     <link rel="stylesheet" href="style.css" />
 </head>
 
-<body>
+<body onload="initialize();">
     <h1><b style="color:red">IR</b><i>eplay</i></h1>
     <main class="cards">
-        <article class="card">
-            <h1>Seamlessly visualize quality</h1>
-            <img src="recording.svg" alt="Sample photo">
-            <div class="tools">
-                <button onclick="replaySignal(this, 1);"><img src="play.svg" alt="Replay IR signal" /></button>
-                <button onclick="renameSignal(1);"><img src="edit.svg" alt="Rename IR signal" /></button>
-                <button onclick="downloadSignal(1);"><img src="save.svg" alt="Download IR signal" /></button>
-                <button onclick="deleteSignal(1);"><img src="trash.svg" alt="Delete IR signal" /></button>
-            </div>
-        </article>
-        <article class="card">
-            <h1>Actively sending this one</h1>
-            <img src="recording.svg" alt="Sample photo">
-            <div class="tools">
-                <button onclick="replaySignal(this, 2);"><img src="sending.svg" alt="Replay IR signal" /></button>
-                <button onclick="renameSignal(2);"><img src="edit.svg" alt="Rename IR signal" /></button>
-                <button onclick="downloadSignal(2);"><img src="save.svg" alt="Download IR signal" /></button>
-                <button onclick="deleteSignal(2);"><img src="trash.svg" alt="Delete IR signal" /></button>
-            </div>
-        </article>
-        <article class="card">
-            <h1>Seamlessly visualize quality</h1>
-            <img src="recording.svg" alt="Sample photo">
-            <div class="tools">
-                <button onclick="replaySignal(this, 3);"><img src="play.svg" alt="Replay IR signal" /></button>
-                <button onclick="renameSignal(3);"><img src="edit.svg" alt="Rename IR signal" /></button>
-                <button onclick="downloadSignal(3);"><img src="save.svg" alt="Download IR signal" /></button>
-                <button onclick="deleteSignal(3);"><img src="trash.svg" alt="Delete IR signal" /></button>
-            </div>
-        </article>
-        <article class="card">
-            <h1>Seamlessly visualize quality</h1>
-            <img src="recording.svg" alt="Sample photo">
-            <div class="tools">
-                <button onclick="replaySignal(this, 4);"><img src="play.svg" alt="Replay IR signal" /></button>
-                <button onclick="renameSignal(4);"><img src="edit.svg" alt="Rename IR signal" /></button>
-                <button onclick="downloadSignal(4);"><img src="save.svg" alt="Download IR signal" /></button>
-                <button onclick="deleteSignal(4);"><img src="trash.svg" alt="Delete IR signal" /></button>
-            </div>
-        </article>
-        <article class="card">
-            <h1>Seamlessly visualize quality</h1>
-            <img src="recording.svg" alt="Sample photo">
-            <div class="tools">
-                <button onclick="replaySignal(this, 5);"><img src="play.svg" alt="Replay IR signal" /></button>
-                <button onclick="renameSignal(5);"><img src="edit.svg" alt="Rename IR signal" /></button>
-                <button onclick="downloadSignal(5);"><img src="save.svg" alt="Download IR signal" /></button>
-                <button onclick="deleteSignal(5);"><img src="trash.svg" alt="Delete IR signal" /></button>
-            </div>
-        </article>
+        <!-- Adding signals here dynamically -->
         <article class=card>
             <button onclick="recordNewSignal();" id="add"><img src="add.svg" alt="Add new signal" /></button>
         </article>
