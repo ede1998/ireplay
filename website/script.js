@@ -1,5 +1,27 @@
 let ALL_SIGNALS = {}
 
+function createSvg(signal) {
+    const image_width = 1000;
+    const image_height = 500;
+    const high = 5;
+    const low = Math.round(image_height - high);
+    const x = (i) => Math.round(image_width * i / (signal.curve.length + 1));
+    const y = (v) => (v == 1) ? high : low;
+
+    const points = signal.curve
+        .entries()
+        .flatMap(([i, v]) => [`${x(i)},${y(v)}`, `${x(i + 1)},${y(v)}`])
+        .toArray();
+
+    const code = `<svg width="${image_width}" height="${image_height}" xmlns="http://www.w3.org/2000/svg">
+        <polyline points="${points.join(" ")}" style="fill:none;stroke:red;stroke-width:4" />
+    </svg>`;
+
+    const blob = new Blob([code], { type: "image/svg+xml" });
+    const link = window.URL.createObjectURL(blob);
+
+    return link;
+}
 
 async function loadAllSignals() {
     const request_url = `${window.location.origin}/signals`;
@@ -16,7 +38,7 @@ async function loadAllSignals() {
 function appendSignal(id, signal) {
     const signal_card = `<article class="card" id="signal-${id}">
         <h1>${signal.name}</h1>
-        <img src="recording.svg" alt="IR signal curve">
+        <img src="${createSvg(signal)}" alt="IR signal curve">
         <div class="tools">
             <button onclick="replaySignal(this, ${id});"><img src="play.svg" alt="Replay IR signal" /></button>
             <button onclick="renameSignal(${id});"><img src="edit.svg" alt="Rename IR signal" /></button>
