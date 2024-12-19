@@ -1,9 +1,9 @@
 use embassy_executor::Spawner;
 use embassy_net::Stack;
 use embassy_time::Duration;
-use picoserve::{make_static, routing::get, AppBuilder, AppRouter};
+use picoserve::{make_static, AppBuilder, AppRouter};
 
-use crate::WEB_TASK_POOL_SIZE;
+use crate::{extractors::StringExtractor, WEB_TASK_POOL_SIZE};
 
 struct AppProps;
 
@@ -11,7 +11,37 @@ impl AppBuilder for AppProps {
     type PathRouter = impl picoserve::routing::PathRouter;
 
     fn build_app(self) -> picoserve::Router<Self::PathRouter> {
-        picoserve::Router::new().route("/", get(|| async move { "Hello World" }))
+        use picoserve::{
+            response::Redirect,
+            routing::{get, parse_path_segment, put},
+        };
+        picoserve::Router::new()
+            .nest_service(
+                "",
+                include!(concat!(env!("OUT_DIR"), "/website_directory.part.rs")),
+            )
+            .route("/", get(|| async move { Redirect::to("/index.html") }))
+            .route(
+                "/signals",
+                get(|| async move {
+                    r#"{ "0": { "name": "Hello", "curve": [1,0,0,0,1,0,1,0,1,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,1,1] } }"#
+                })
+                .post(|StringExtractor(s)| async move {
+                    log::info!("Adding new signal {s}");
+                }),
+            )
+            .route(
+                ("/signals", parse_path_segment::<usize>()),
+                put(|id| async move {
+                    log::info!("Replaying signal {id}");
+                })
+                .post(|id, StringExtractor(s)| async move {
+                    log::info!("Renaming signal {id} to {s}");
+                })
+                .delete(|id| async move {
+                    log::info!("Deleting signal {id}");
+                }),
+            )
     }
 }
 

@@ -10,7 +10,7 @@ use ireplay::{server, wifi};
 
 #[esp_hal_embassy::main]
 async fn main(spawner: Spawner) {
-    esp_println::logger::init_logger_from_env();
+    esp_println::logger::init_logger(log::LevelFilter::Debug);
     let mut config = esp_hal::Config::default();
     config.cpu_clock = CpuClock::max();
     let config = config;

@@ -69,3 +69,7 @@ incremental = false
 lto = 'fat'
 opt-level = 's'
 overflow-checks = false
+
+[build-dependencies]
+rustfmt-wrapper = "0.2.1"
+unindent = "0.2.3"
