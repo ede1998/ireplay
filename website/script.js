@@ -41,17 +41,26 @@ async function recordNewSignal() {
     const name = prompt("Please enter signal name:");
     const request_url = `${window.location.origin}/signals`;
     try {
-        await fetch(request_url, {
+        const response = await fetch(request_url, {
             method: "POST",
             headers: { 'Content-Type': 'text/plain' },
             body: name,
         });
+        const signal_with_id = await response.json();
+
+        if (Object.entries(signal_with_id).length !== 1) {
+            console.log(`Unexpected format for ${JSON.stringify(signal_with_id)}`);
+            return;
+        }
+        const [id, signal] = Object.entries(signal_with_id)[0];
+
+        alert(`Created signal '${name}'`);
+        ALL_SIGNALS[id] = signal;
+        appendSignal(id, signal);
     } catch (error) {
         console.log("Failed to create new signal");
         return;
     }
-    alert(`Created signal '${name}'`);
-    location.reload();
 }
 
 async function replaySignal(button, id) {
@@ -101,6 +110,7 @@ async function deleteSignal(id) {
         await fetch(request_url, { method: "DELETE" });
         alert(`Signal '${name}' deleted`);
         document.getElementById(`signal-${id}`).remove();
+        delete ALL_SIGNALS[id];
     } catch (error) {
         console.log("Failed to delete signal");
     }
