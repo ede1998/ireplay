@@ -36,9 +36,8 @@ class Signal {
         }
     }
 
-    download(id) {
-        const name = document.querySelector(`.card:nth-child(${id})>h1`).textContent;
-        downloadFile(`${name}.txt`, "010101010101110");
+    download() {
+        downloadFile(`${this.name}.txt`, JSON.stringify(this.curve));
     }
 
     #appendSignal() {
