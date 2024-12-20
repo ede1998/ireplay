@@ -1,9 +1,10 @@
+use alloc::string::String as DynString;
 use embassy_executor::Spawner;
 use embassy_net::Stack;
 use embassy_time::Duration;
 use picoserve::{make_static, AppBuilder, AppRouter};
 
-use crate::{extractors::StringExtractor, WEB_TASK_POOL_SIZE};
+use crate::WEB_TASK_POOL_SIZE;
 
 struct AppProps;
 
@@ -26,7 +27,7 @@ impl AppBuilder for AppProps {
                 get(|| async move {
                     r#"{ "0": { "name": "Hello", "curve": [1,0,0,0,1,0,1,0,1,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,1,1] } }"#
                 })
-                .post(|StringExtractor(s)| async move {
+                .post(|s: DynString| async move {
                     log::info!("Adding new signal {s}");
                     r#"{ "1": { "name": "Welt", "curve": [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] } }"#
                 }),
@@ -36,7 +37,7 @@ impl AppBuilder for AppProps {
                 put(|id| async move {
                     log::info!("Replaying signal {id}");
                 })
-                .post(|id, StringExtractor(s)| async move {
+                .post(|id, s: DynString| async move {
                     log::info!("Renaming signal {id} to {s}");
                 })
                 .delete(|id| async move {
