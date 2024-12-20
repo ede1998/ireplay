@@ -124,6 +124,10 @@ class AllSignals {
 
     async record() {
         const name = prompt("Please enter signal name:");
+        if ((name ?? "") === "") {
+            return;
+        }
+
         const request_url = `${window.location.origin}/signals`;
         try {
             const response = await fetch(request_url, {
