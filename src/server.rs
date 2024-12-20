@@ -28,6 +28,7 @@ impl AppBuilder for AppProps {
                 })
                 .post(|StringExtractor(s)| async move {
                     log::info!("Adding new signal {s}");
+                    r#"{ "1": { "name": "Welt", "curve": [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] } }"#
                 }),
             )
             .route(
@@ -53,7 +54,7 @@ pub async fn init(spawner: &Spawner, stack: Stack<'static>) {
         picoserve::Config::new(picoserve::Timeouts {
             start_read_request: Some(Duration::from_secs(5)),
             read_request: Some(Duration::from_secs(1)),
-            write: Some(Duration::from_secs(1)),
+            write: Some(Duration::from_secs(4)),
         })
         .keep_connection_alive()
     );

@@ -909,6 +909,7 @@ dependencies = [
  "futures-util",
  "heapless",
  "lhash",
+ "log",
  "ryu",
  "serde",
  "serde-json-core",
