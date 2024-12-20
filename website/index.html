@@ -7,12 +7,12 @@
     <link rel="stylesheet" href="style.css" />
 </head>
 
-<body onload="initialize();">
+<body onload="ALL_SIGNALS.initialize();">
     <h1><b style="color:red">IR</b><i>eplay</i></h1>
     <main class="cards">
         <!-- Adding signals here dynamically -->
         <article class=card>
-            <button onclick="recordNewSignal();" id="add"><img src="add.svg" alt="Add new signal" /></button>
+            <button onclick="ALL_SIGNALS.record();" id="add"><img src="add.svg" alt="Add new signal" /></button>
         </article>
     </main>
     <script src="script.js" type="text/javascript"></script>
