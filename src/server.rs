@@ -2,16 +2,22 @@ use alloc::string::String as DynString;
 use embassy_executor::Spawner;
 use embassy_net::Stack;
 use embassy_time::Duration;
-use picoserve::{make_static, AppBuilder, AppRouter};
+use picoserve::{extract::State, make_static, AppWithStateBuilder, AppRouter};
 
 use crate::WEB_TASK_POOL_SIZE;
 
+#[derive(Clone)]
+struct Counter {
+    counter: i32,
+}
+
 struct AppProps;
 
-impl AppBuilder for AppProps {
-    type PathRouter = impl picoserve::routing::PathRouter;
+impl AppWithStateBuilder for AppProps {
+    type PathRouter = impl picoserve::routing::PathRouter<Self::State>;
+    type State = Counter;
 
-    fn build_app(self) -> picoserve::Router<Self::PathRouter> {
+    fn build_app(self) -> picoserve::Router<Self::PathRouter, Self::State> {
         use picoserve::{
             response::Redirect,
             routing::{get, parse_path_segment, put},
@@ -40,8 +46,9 @@ impl AppBuilder for AppProps {
                 .post(|id, s: DynString| async move {
                     log::info!("Renaming signal {id} to {s}");
                 })
-                .delete(|id| async move {
+                .delete(|id, State::<Counter>(state)| async move {
                     log::info!("Deleting signal {id}");
+                    log::info!("Counter value is {}", state.counter);
                 }),
             )
     }
@@ -77,7 +84,7 @@ async fn web_task(
     let mut tcp_tx_buffer = [0; 1024];
     let mut http_buffer = [0; 2048];
 
-    picoserve::listen_and_serve(
+    picoserve::listen_and_serve_with_state(
         id,
         app,
         config,
@@ -86,6 +93,7 @@ async fn web_task(
         &mut tcp_rx_buffer,
         &mut tcp_tx_buffer,
         &mut http_buffer,
+        &Counter { counter: 12 },
     )
     .await
 }
