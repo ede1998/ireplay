@@ -37,3 +37,26 @@ async fn main(_spawner: Spawner) {
 
     rtc.sleep_deep(&[&TimerWakeupSource::new(CoreDuration::from_millis(10000))]);
 }
+
+#[global_allocator]
+static DUMMY: Dummy = Dummy;
+
+struct Dummy;
+
+unsafe impl core::alloc::GlobalAlloc for Dummy {
+    unsafe fn alloc(&self, _: core::alloc::Layout) -> *mut u8 {
+        extern "C" {
+            fn alloc_blocker() -> *mut u8;
+        }
+
+        alloc_blocker()
+    }
+
+    unsafe fn dealloc(&self, _: *mut u8, _: core::alloc::Layout) {
+        extern "C" {
+            fn dealloc_blocker();
+        }
+
+        dealloc_blocker()
+    }
+}
