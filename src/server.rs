@@ -13,7 +13,7 @@ use picoserve::{
 };
 use serde::Serialize;
 
-use crate::WEB_TASK_POOL_SIZE;
+use crate::{extractor::StringExtractor, WEB_TASK_POOL_SIZE};
 
 #[derive(Clone, Debug)]
 struct SignalDatabase {
@@ -49,7 +49,7 @@ impl AppWithStateBuilder for AppProps {
                     Json(state.signals.borrow().clone())
                 })
                 .post(
-                    |State::<SignalDatabase>(state), name: DynString| async move {
+                    |State::<SignalDatabase>(state), StringExtractor(name)| async move {
                         log::info!("Adding new signal {name}");
 
                         let signal = Signal {
@@ -79,7 +79,7 @@ impl AppWithStateBuilder for AppProps {
                     }
                 })
                 .post(
-                    |id, State::<SignalDatabase>(state), name: DynString| async move {
+                    |id, State::<SignalDatabase>(state), StringExtractor(name)| async move {
                         match state.signals.borrow_mut().get_mut(&id) {
                             Some(signal) => {
                                 log::info!("Renaming signal {id} to {name}");

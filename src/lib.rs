@@ -6,4 +6,6 @@ pub const WEB_TASK_POOL_SIZE: usize = 8;
 pub mod server;
 pub mod wifi;
 
+mod extractor;
+
 extern crate alloc;
