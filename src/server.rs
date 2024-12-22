@@ -1,25 +1,40 @@
-use alloc::string::String as DynString;
+use core::cell::RefCell;
+
+use alloc::rc::Rc;
+use alloc::vec;
+use alloc::{borrow::ToOwned, string::String as DynString, vec::Vec as DynVec};
 use embassy_executor::Spawner;
 use embassy_net::Stack;
 use embassy_time::Duration;
-use picoserve::{extract::State, make_static, AppWithStateBuilder, AppRouter};
+use hashbrown::HashMap as DynHashMap;
+use picoserve::{
+    extract::{Json, State},
+    make_static, AppRouter, AppWithStateBuilder,
+};
+use serde::Serialize;
 
 use crate::WEB_TASK_POOL_SIZE;
 
-#[derive(Clone)]
-struct Counter {
-    counter: i32,
+#[derive(Clone, Debug)]
+struct SignalDatabase {
+    signals: Rc<RefCell<DynHashMap<usize, Signal, nohash_hasher::BuildNoHashHasher<usize>>>>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+struct Signal {
+    name: DynString,
+    curve: DynVec<u8>,
 }
 
 struct AppProps;
 
 impl AppWithStateBuilder for AppProps {
     type PathRouter = impl picoserve::routing::PathRouter<Self::State>;
-    type State = Counter;
+    type State = SignalDatabase;
 
     fn build_app(self) -> picoserve::Router<Self::PathRouter, Self::State> {
         use picoserve::{
-            response::Redirect,
+            response::{Redirect, StatusCode},
             routing::{get, parse_path_segment, put},
         };
         picoserve::Router::new()
@@ -30,25 +45,62 @@ impl AppWithStateBuilder for AppProps {
             .route("/", get(|| async move { Redirect::to("/index.html") }))
             .route(
                 "/signals",
-                get(|| async move {
-                    r#"{ "0": { "name": "Hello", "curve": [1,0,0,0,1,0,1,0,1,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,1,1] } }"#
+                get(|State::<SignalDatabase>(state)| async move {
+                    Json(state.signals.borrow().clone())
                 })
-                .post(|s: DynString| async move {
-                    log::info!("Adding new signal {s}");
-                    r#"{ "1": { "name": "Welt", "curve": [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] } }"#
-                }),
+                .post(
+                    |State::<SignalDatabase>(state), name: DynString| async move {
+                        log::info!("Adding new signal {name}");
+
+                        let signal = Signal {
+                            name,
+                            curve: vec![0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1],
+                        };
+                        let mut signals = state.signals.borrow_mut();
+                        let next_id = signals.len();
+                        signals.insert(next_id, signal.clone());
+
+                        Json([(next_id, signal)])
+                    },
+                ),
             )
             .route(
                 ("/signals", parse_path_segment::<usize>()),
-                put(|id| async move {
-                    log::info!("Replaying signal {id}");
+                put(|id, State::<SignalDatabase>(state)| async move {
+                    match state.signals.borrow_mut().get(&id) {
+                        Some(signal) => {
+                            log::info!("Replaying signal {id} with name {}", signal.name);
+                            StatusCode::OK
+                        }
+                        None => {
+                            log::warn!("Failed to rename signal {id}. Does not exist");
+                            StatusCode::NOT_FOUND
+                        }
+                    }
                 })
-                .post(|id, s: DynString| async move {
-                    log::info!("Renaming signal {id} to {s}");
-                })
-                .delete(|id, State::<Counter>(state)| async move {
-                    log::info!("Deleting signal {id}");
-                    log::info!("Counter value is {}", state.counter);
+                .post(
+                    |id, State::<SignalDatabase>(state), name: DynString| async move {
+                        match state.signals.borrow_mut().get_mut(&id) {
+                            Some(signal) => {
+                                log::info!("Renaming signal {id} to {name}");
+                                signal.name = name;
+                                StatusCode::OK
+                            }
+                            None => {
+                                log::warn!("Failed to rename signal {id}. Does not exist");
+                                StatusCode::NOT_FOUND
+                            }
+                        }
+                    },
+                )
+                .delete(|id, State::<SignalDatabase>(state)| async move {
+                    if state.signals.borrow_mut().remove(&id).is_some() {
+                        log::info!("Deleted signal {id}");
+                        StatusCode::OK
+                    } else {
+                        log::warn!("Failed to delete signal {id}. Does not exist");
+                        StatusCode::NOT_FOUND
+                    }
                 }),
             )
     }
@@ -67,8 +119,28 @@ pub async fn init(spawner: &Spawner, stack: Stack<'static>) {
         .keep_connection_alive()
     );
 
+    let state = &*make_static!(
+        SignalDatabase,
+        SignalDatabase {
+            signals: Rc::new(RefCell::new(
+                [(
+                    0,
+                    Signal {
+                        name: "Hello".to_owned(),
+                        curve: vec![
+                            1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0,
+                            1, 1,
+                        ],
+                    },
+                )]
+                .into_iter()
+                .collect(),
+            )),
+        }
+    );
+
     for id in 0..WEB_TASK_POOL_SIZE {
-        spawner.must_spawn(web_task(id, stack, app, config));
+        spawner.must_spawn(web_task(id, stack, app, config, state));
     }
 }
 
@@ -78,6 +150,7 @@ async fn web_task(
     stack: embassy_net::Stack<'static>,
     app: &'static AppRouter<AppProps>,
     config: &'static picoserve::Config<Duration>,
+    state: &'static SignalDatabase,
 ) -> ! {
     let port = 80;
     let mut tcp_rx_buffer = [0; 1024];
@@ -93,7 +166,7 @@ async fn web_task(
         &mut tcp_rx_buffer,
         &mut tcp_tx_buffer,
         &mut http_buffer,
-        &Counter { counter: 12 },
+        state,
     )
     .await
 }

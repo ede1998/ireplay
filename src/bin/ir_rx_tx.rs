@@ -7,7 +7,6 @@ use esp_hal::{
     gpio::{Input, Output},
     prelude::*,
 };
-use heapless::Vec;
 use log::info;
 
 use embassy_executor::Spawner;
@@ -49,15 +48,15 @@ async fn main(spawner: Spawner) {
 
     loop {
         // g25
-        let mut signal: Vec<u8, 1_000> = heapless::Vec::new();
+        let mut signal = [0u8; 1000];
         // Min. pulse duration = 500us -> double it to protect against aliasing
         const TICK_RATE: Duration = Duration::from_micros(250);
         let mut ticker = Ticker::every(TICK_RATE);
         rx.wait_for_falling_edge().await;
         ticker.reset();
-        for _ in 0..signal.capacity() {
+        for v in &mut signal {
             let value = if rx.is_high() { 1 } else { 0 };
-            let _: Result<(), _> = signal.push(value);
+            *v = value;
             ticker.next().await;
         }
 

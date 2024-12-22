@@ -105,7 +105,9 @@ class AllSignals {
             return {};
         }
 
-        for (const [id, signal] of Object.entries(signal_data)) {
+        // Workaround for picoserve bug
+        signal_data = (Array.isArray(signal_data)) ? signal_data : Object.entries(signal_data);
+        for (const [id, signal] of signal_data) {
             this[id] = new Signal(id, signal.name, signal.curve);
         }
     }
@@ -135,13 +137,16 @@ class AllSignals {
                 headers: { 'Content-Type': 'text/plain' },
                 body: name,
             });
-            const signal_with_id = await response.json();
+            let signal_with_id = await response.json();
+            
+            // Workaround for picoserve bug
+            signal_with_id = (Array.isArray(signal_with_id)) ? signal_with_id : Object.entries(signal_with_id);
 
-            if (Object.entries(signal_with_id).length !== 1) {
+            if (signal_with_id.length !== 1) {
                 console.log(`Unexpected format for ${JSON.stringify(signal_with_id)}`);
                 return;
             }
-            const [id, signal] = Object.entries(signal_with_id)[0];
+            const [id, signal] = signal_with_id[0];
 
             alert(`Created signal '${name}'`);
             this[id] = new Signal(id, signal.name, signal.curve);
