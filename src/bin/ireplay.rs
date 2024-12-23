@@ -6,7 +6,7 @@ use embassy_executor::Spawner;
 use esp_alloc as _;
 use esp_backtrace as _;
 use esp_hal::{prelude::*, rng::Rng, timer::timg::TimerGroup};
-use ireplay::{server, wifi};
+use ireplay::{server, wifi, Ir};
 
 #[esp_hal_embassy::main]
 async fn main(spawner: Spawner) {
@@ -35,5 +35,6 @@ async fn main(spawner: Spawner) {
     .connect(&spawner)
     .await;
 
-    server::init(&spawner, stack).await;
+    let ir = Ir::new(peripherals.GPIO25, peripherals.GPIO17);
+    server::init(&spawner, stack, ir).await;
 }

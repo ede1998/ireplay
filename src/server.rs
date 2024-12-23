@@ -1,8 +1,8 @@
 use core::cell::RefCell;
 
+use alloc::boxed::Box;
 use alloc::rc::Rc;
-use alloc::vec;
-use alloc::{borrow::ToOwned, string::String as DynString, vec::Vec as DynVec};
+use alloc::string::String as DynString;
 use embassy_executor::Spawner;
 use embassy_net::Stack;
 use embassy_time::Duration;
@@ -13,17 +13,19 @@ use picoserve::{
 };
 use serde::Serialize;
 
+use crate::Ir;
 use crate::{extractor::StringExtractor, WEB_TASK_POOL_SIZE};
 
 #[derive(Clone, Debug)]
 struct SignalDatabase {
     signals: Rc<RefCell<DynHashMap<usize, Signal, nohash_hasher::BuildNoHashHasher<usize>>>>,
+    ir: Rc<RefCell<Ir>>,
 }
 
 #[derive(Clone, Debug, Serialize)]
 struct Signal {
     name: DynString,
-    curve: DynVec<u8>,
+    curve: Box<[u8]>,
 }
 
 struct AppProps;
@@ -52,10 +54,8 @@ impl AppWithStateBuilder for AppProps {
                     |State::<SignalDatabase>(state), StringExtractor(name)| async move {
                         log::info!("Adding new signal {name}");
 
-                        let signal = Signal {
-                            name,
-                            curve: vec![0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1],
-                        };
+                        let curve = state.ir.borrow_mut().record().await;
+                        let signal = Signal { name, curve };
                         let mut signals = state.signals.borrow_mut();
                         let next_id = signals.len();
                         signals.insert(next_id, signal.clone());
@@ -70,6 +70,7 @@ impl AppWithStateBuilder for AppProps {
                     match state.signals.borrow_mut().get(&id) {
                         Some(signal) => {
                             log::info!("Replaying signal {id} with name {}", signal.name);
+                            state.ir.borrow_mut().replay(&signal.curve).await;
                             StatusCode::OK
                         }
                         None => {
@@ -106,7 +107,7 @@ impl AppWithStateBuilder for AppProps {
     }
 }
 
-pub async fn init(spawner: &Spawner, stack: Stack<'static>) {
+pub async fn init<'ir>(spawner: &Spawner, stack: Stack<'static>, ir: Ir) {
     let app = make_static!(AppRouter<AppProps>, AppProps.build_app());
 
     let config = make_static!(
@@ -122,20 +123,8 @@ pub async fn init(spawner: &Spawner, stack: Stack<'static>) {
     let state = &*make_static!(
         SignalDatabase,
         SignalDatabase {
-            signals: Rc::new(RefCell::new(
-                [(
-                    0,
-                    Signal {
-                        name: "Hello".to_owned(),
-                        curve: vec![
-                            1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0,
-                            1, 1,
-                        ],
-                    },
-                )]
-                .into_iter()
-                .collect(),
-            )),
+            signals: Rc::new(RefCell::new(DynHashMap::default())),
+            ir: Rc::new(RefCell::new(ir)),
         }
     );
 

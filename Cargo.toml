@@ -53,6 +53,7 @@ rand = { version = "*", default-features = false }
 hashbrown = { version = "0.15.2", default-features = false, features = ["inline-more", "serde"]}
 nohash-hasher = { version = "0.2.0", default-features = false }
 serde = { version = "1.0.216", default-features = false, features = ["alloc", "derive"] }
+embassy-sync = "0.6.1"
 
 [profile.dev]
 # Rust debug is too slow.
