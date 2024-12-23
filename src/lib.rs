@@ -7,5 +7,8 @@ pub mod server;
 pub mod wifi;
 
 mod extractor;
+mod multi_core;
+
+pub use multi_core::start_2nd_core;
 
 extern crate alloc;

@@ -6,7 +6,7 @@ use embassy_executor::Spawner;
 use esp_alloc as _;
 use esp_backtrace as _;
 use esp_hal::{prelude::*, rng::Rng, timer::timg::TimerGroup};
-use ireplay::{server, wifi};
+use ireplay::{server, start_2nd_core, wifi};
 
 #[esp_hal_embassy::main]
 async fn main(spawner: Spawner) {
@@ -15,14 +15,16 @@ async fn main(spawner: Spawner) {
     config.cpu_clock = CpuClock::max();
     let config = config;
     let peripherals = esp_hal::init(config);
-    let timg1 = TimerGroup::new(peripherals.TIMG1);
-    let timg0 = TimerGroup::new(peripherals.TIMG0);
-    let rng = Rng::new(peripherals.RNG);
 
     // need SRAM for WIFI but can also use PSRAM for other stuff
     // SRAM must be first to prevent WIFI from choosing PSRAM
     esp_alloc::heap_allocator!(72 * 1024);
-    esp_alloc::psram_allocator!(peripherals.PSRAM, esp_hal::psram);
+    // Enabling this makes it crash...
+    // esp_alloc::psram_allocator!(peripherals.PSRAM, esp_hal::psram);
+
+    let timg1 = TimerGroup::new(peripherals.TIMG1);
+    let timg0 = TimerGroup::new(peripherals.TIMG0);
+    let rng = Rng::new(peripherals.RNG);
 
     esp_hal_embassy::init(timg1.timer0);
 
@@ -35,5 +37,18 @@ async fn main(spawner: Spawner) {
     .connect(&spawner)
     .await;
 
+    // Enabling this makes it crash on first request...
+    // start_2nd_core(peripherals.CPU_CTRL, |spawner| {
+    //     spawner.must_spawn(test());
+    // })
+    // .unwrap();
+
     server::init(&spawner, stack).await;
+}
+
+#[embassy_executor::task]
+async fn test() {
+    loop {
+        embassy_time::Timer::after_millis(1000).await;
+    }
 }
