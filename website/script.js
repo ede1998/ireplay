@@ -93,7 +93,7 @@ class Signal {
 
 
 class AllSignals {
-    async initialize() {
+    constructor() {
         const request_url = `${window.location.origin}/signals`;
         let signal_data;
 
