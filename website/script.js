@@ -94,6 +94,10 @@ class Signal {
 
 class AllSignals {
     constructor() {
+        this.#initialize();
+    }
+
+    async #initialize() {
         const request_url = `${window.location.origin}/signals`;
         let signal_data;
 
